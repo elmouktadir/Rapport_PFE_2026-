@@ -1,0 +1,162 @@
+% !TEX program = xelatex
+% =====================================================
+% PREAMBLE - Configuration générale du document LaTeX
+% =====================================================
+
+% Encoding
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% Langue et internationalisation
+\usepackage[french,english,arabic]{babel}
+\selectlanguage{french}
+
+% Marges et géométrie
+\usepackage[left=2.5cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
+
+% Polices
+\usepackage{fontspec}
+\usepackage{times}
+\setmainfont[Ligatures=TeX]{Times New Roman}
+
+% Interligne
+\usepackage{setspace}
+\onehalfspacing
+
+% En-têtes et pieds de page
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Couleurs
+\usepackage[dvipsnames]{xcolor}
+\definecolor{darkblue}{rgb}{0.1,0.2,0.5}
+\definecolor{lightblue}{rgb}{0.8,0.9,1}
+
+% Graphiques et images
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subfig}
+\usepackage{wrapfig}
+\graphicspath{{images/}}
+
+% Tableaux
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+% Listes et énumérations
+\usepackage{enumitem}
+\setlist[itemize]{label=\textbullet, leftmargin=2em}
+\setlist[enumerate]{label=\arabic*., leftmargin=2em}
+
+% Mathématiques
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+% Code et listings
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+    language=PHP,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    breaklines=true,
+    breakatwhitespace=true,
+    showstringspaces=false,
+    frame=single,
+    rulecolor=\color{lightgray},
+    backgroundcolor=\color{white},
+    captionpos=b,
+    numbersep=5pt,
+    numbers=left,
+    numberstyle=\tiny\color{gray}
+}
+
+% Lien et hyperliens
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=darkblue,
+    filecolor=darkblue,
+    urlcolor=darkblue,
+    citecolor=darkblue,
+    bookmarksnumbered=true,
+    pdfauthor={EL MOUKTADIR Mohamed},
+    pdftitle={Rapport de Stage PFE - PowerTeam Synchronisation},
+}
+
+% Table des matières améliorée
+\usepackage{tocloft}
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+
+% Sections et chapitres
+\usepackage{titlesec}
+\titleformat{\chapter}[hang]{\Huge\bfseries\color{darkblue}}{\thechapter.}{20pt}{\Huge\bfseries}
+\titleformat{\section}[hang]{\Large\bfseries\color{darkblue}}{\thesection}{15pt}{\Large\bfseries}
+\titleformat{\subsection}[hang]{\large\bfseries\color{darkblue}}{\thesubsection}{12pt}{\large\bfseries}
+
+% Espacement des chapitres
+\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+\titlespacing*{\section}{0pt}{12pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+
+% Notes de bas de page
+\usepackage{footnote}
+\usepackage{endnotes}
+
+% Acronymes et glossaire
+\usepackage[acronym,toc]{glossaries}
+\makeglossaries
+\input{glossary}
+
+% Bibliographie et références
+\usepackage[backend=bibtex,style=alphabetic,sorting=nyt]{biblatex}
+\addbibresource{references.bib}
+
+% Diagrammes et schémas
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,backgrounds}
+
+% Numérotation des figures et tableaux
+\usepackage{caption}
+\captionsetup[figure]{labelfont=bf,textfont=it,font=small}
+\captionsetup[table]{labelfont=bf,textfont=it,font=small}
+
+% Références croisées améliorées
+\usepackage{cleveref}
+
+% Espacements verticaux personnalisés
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+\newcommand{\HRuleThick}{\rule{\linewidth}{1.5mm}}
+
+% Espaces verticaux
+\newcommand{\VSpace}{\vspace{0.5cm}}
+\newcommand{\VSpaceLarge}{\vspace{1cm}}
+
+% Texte coloré
+\newcommand{\textblue}[1]{{\color{darkblue}#1}}
+
+% Remarques et boîtes
+\usepackage{tcolorbox}
+\newtcolorbox{remarque}[1][]{
+    colback=lightblue,
+    colframe=darkblue,
+    coltitle=white,
+    title={Remarque},
+    fonttitle=\bfseries,
+    boxsep=5pt,
+    arc=4pt
+}
+
+% Fin du preamble
