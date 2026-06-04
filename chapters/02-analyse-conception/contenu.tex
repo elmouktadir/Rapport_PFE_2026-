@@ -1,0 +1,96 @@
+\section{Introduction}
+
+Ce chapitre sera consacré à la conception et modélisation de chacun des axes du projet. Cela sera présenté comme suit : premièrement le choix de la méthodologie de conception. Ensuite la phase de modélisation de l'application en détaillant chaque axe et ses fonctionnalités.
+
+\section{Présentation de l'UML}
+
+UML (Unified Modeling Language) est un langage formel et normalisé en termes de modélisation objet. Son indépendance par rapport aux langages de programmation, aux domaines de l'application et aux processus, son caractère polyvalent et sa souplesse ont fait de lui un langage universel.
+
+Dans ce cas de notre projet ce langage est utilisé pour la description des différents diagrammes qui est un langage de modélisation graphique à base de pictogrammes. Il est apparu dans le monde du génie logiciel, dans le cadre de la << conception orientée objet >>. Couramment utilisé dans les projets logiciels, il peut être appliqué à toutes sortes de systèmes.
+
+\section{Diagramme de cas d'utilisation}
+
+Le diagramme de cas d'utilisation offre un premier pas pour comprendre les interactions entre le système et ses différents acteurs. En effet, ceux-ci permettent de délimiter le système en un ensemble de besoins des utilisateurs.
+
+Le module de synchronisation delta entre la plateforme TTP et le système AdminIS (ERP) repose sur une architecture hexagonale suivant le pattern Command Query Responsabilité Ségrégation (CQRS). Le système permet à un Super Admin de :
+
+\begin{itemize}
+    \item Synchroniser incrémentalement sept types d'entités métier
+    \item Gérer les Clients
+    \item Gérer les Factures
+    \item Gérer les Enregistrements de Temps (Time Sheets)
+    \item Gérer les Collaborateurs
+    \item Gérer les Déclarations TVA
+    \item Gérer les Soldes (Balances générales, ISOC et IPM)
+end{itemize}
+
+La synchronisation delta, déclenchée via une commande console (\texttt{ttp:team:delta-sync}), optimise le trafic réseau en ne récupérant que les changements depuis la dernière synchronisation via l'Endpoint \texttt{'/changedetails'} d'AdminIS.
+
+\section{Diagramme de classe}
+
+Ce diagramme de classe représente la structure des entités métiers ainsi que leurs relations dans le système de suivi de prestation.
+
+Le système TTP repose sur un modèle de données métier structuré en entités interdépendantes, chacune responsable d'un domaine spécifique. Ces entités forment l'épine dorsale de la plateforme et assurent la synchronisation transparente avec l'ERP AdminIS.
+
+\subsection{Entités Fondamentales}
+
+\begin{itemize}
+    \item \textbf{Organization} : Conteneur racine représentant une organisation cliente.
+    \item \textbf{OrganizationPeriodSetting} : Configuration annuelle de l'organisation stockant les paramètres de synchronisation delta.
+end{itemize}
+
+\subsection{Entités de Gestion Clients}
+
+\begin{itemize}
+    \item \textbf{Client} : Représente un client/projet au sein d'une organisation.
+    \item \textbf{ClientZonePeriodSetting} : Configuration des durées de travail par client et zone.
+    \item \textbf{ClientPeriodSetting} : Paramètres annuels spécifiques du client.
+end{itemize}
+
+\subsection{Entités de Ressources Humaines}
+
+\begin{itemize}
+    \item \textbf{Collaborator} : Représente un employé/collaborateur du cabinet.
+    \item \textbf{CollaboratorPeriodSetting} : Configuration annuelle du collaborateur.
+end{itemize}
+
+\subsection{Entités de Temps et Facturation}
+
+\begin{itemize}
+    \item \textbf{Task} : Enregistrement d'une prestation effectuée par un collaborateur pour un client.
+    \item \textbf{TaskType} : Classification des types de prestations.
+    \item \textbf{Invoice} : Facture émise par AdminIS pour un client.
+    \item \textbf{Budget} : Budget annuel alloué à un client.
+end{itemize}
+
+\subsection{Entités de Suivi et Clôture Comptable}
+
+\begin{itemize}
+    \item \textbf{Balance} : Solde annuel d'un client par type (ISOC ou IPM).
+    \item \textbf{TvaDeclarationRic} : Déclaration TVA pour un client.
+end{itemize}
+
+\section{Diagramme de séquence}
+
+Parfois, la description textuelle ne suffit pas pour représenter le fonctionnement dynamique du système puisqu'il repose sur un enchaînement qui nécessite des schématisations bien faites. Cela nous aide beaucoup de comprendre les étapes à suivre.
+
+\subsection{Principe général de synchronisation}
+
+Le flux global de synchronisation se déroule selon les étapes suivantes :
+
+\begin{enumerate}
+    \item Une demande de synchronisation est générée par le système.
+    \item Le système crée une ligne dans une table dédiée contenant la commande complète.
+    \item Le démon de surveillance analyse périodiquement cette table.
+    \item Lorsqu'une nouvelle commande est détectée, le démon lance automatiquement la commande Symfony correspondante.
+    \item La commande de synchronisation récupère la dernière date ou le dernier identifiant de synchronisation.
+    \item Le système interroge l'ERP AdminIS afin de récupérer uniquement les données modifiées depuis la dernière synchronisation.
+    \item Les données récupérées sont analysées et classifiées selon les opérations détectées (INSERT, UPDATE, DELETE).
+    \item Les informations sont transformées vers le modèle interne de l'application.
+    \item Les opérations nécessaires sont appliquées dans la base de données locale.
+    \item Les logs et les états d'exécution sont mis à jour.
+end{enumerate}
+
+\section{Conclusion}
+
+Ce chapitre était alors une présentation de vue conceptuelle de la solution à mettre en place. Ainsi, un ensemble de diagrammes UML ont été présentés dans ce chapitre.

@@ -1,0 +1,170 @@
+\section{Introduction}
+
+Ce chapitre est consacré à l'étude des besoins ainsi qu'à l'analyse technique. Il se divise en deux parties : la première partie vise à identifier et spécifier les besoins fonctionnels et non fonctionnels du système, tandis que la seconde s'intéresse à l'analyse technique.
+
+\section{Analyse des besoins}
+
+\subsection{Besoins fonctionnels}
+
+\subsubsection{Objectif Global}
+
+Synchroniser les changements incrémentaux (delta) entre l'ERP AdminIs et la base de données Team pour maintenir la cohérence des données sans rejouer l'intégralité des données.
+
+Voila ici l'ordre de synchronisation des entités dans PowerTeam :
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Ordre} & \textbf{Entité} & \textbf{Table AdminIs} & \textbf{Table} & \textbf{Dépendances} \\
+\hline
+1 & Time Registrations & TIME_REGISTRATION & tasks & Client, Collaborator \\
+\hline
+2 & Clients & CUSTOMER & clients & Aucune \\
+\hline
+3 & Invoices & INVOICE & invoices & Client (FK) \\
+\hline
+4 & Balances ISOC & TASK_253 & balances & Client, Collaborator \\
+\hline
+5 & Balances IPM & TASK_147 & balances & Client, Collaborator \\
+\hline
+6 & TVA Balances & TASK_146 & tva_declaration_ric & Client \\
+\hline
+\end{tabular}
+\caption{Flux de Synchronisation par Entité}
+\end{table}
+
+\subsubsection{Gestion des Erreurs}
+
+Lorsqu'une erreur est détectée lors du traitement d'une entité, le système applique une stratégie de résilience basée sur le best-effort. Plutôt que d'interrompre l'intégralité du processus de synchronisation, le système :
+
+\begin{enumerate}
+    \item \textbf{Enregistre l'erreur} : Un log détaillé est créé avec le timestamp, le type d'entité affectée, l'ID du record, le message d'erreur exact et la sévérité.
+    
+    \item \textbf{Continue vers l'entité suivante} : Après avoir loggé l'erreur, le système ne s'arrête pas. Il passe immédiatement au traitement de l'entité suivante.
+    
+    \item \textbf{Ne modifie PAS le lastLogId} : Le lastLogId ou lastSyncDate de l'entité en erreur n'est pas mis à jour. Cela signifie que lors du prochain cycle de synchronisation, l'entité en erreur sera rejouée depuis le même point.
+end{enumerate}
+
+\subsubsection{Tracking des Changements}
+
+La table OrganizationPeriodSetting contient une colonne JSON appelée synchroDetails qui stocke toutes les métadonnées de synchronisation. Cette structure comprend :
+
+\begin{itemize}
+    \item \textbf{is_running} : Enregistre l'état actuel de chaque entité (booléen).
+    \item \textbf{progress} : Indicateur de progression en pourcentage (0-100).
+    \item \textbf{last_update} : Horodatage purement informatif.
+    \item \textbf{last_delta_sync} : Date/heure de la dernière synchronisation delta réussie.
+    \item \textbf{last_log_id} : Plus grand LogId reçu de l'API AdminIs pour chaque entité.
+end{itemize}
+
+\subsection{Besoins non-fonctionnels}
+
+\begin{itemize}
+    \item \textbf{Performance} : Le système doit synchroniser les données en temps opportun sans ralentir les opérations normales.
+    \item \textbf{Fiabilité} : Le système doit être robuste et fiable, avec une gestion appropriée des erreurs.
+    \item \textbf{Scalabilité} : Le système doit pouvoir gérer une augmentation du volume de données.
+    \item \textbf{Sécurité} : Les données doivent être protégées et les accès contrôlés.
+    \item \textbf{Maintenabilité} : Le code doit être bien structuré et documenté pour faciliter la maintenance.
+end{itemize}
+
+\section{Analyse Technique}
+
+\subsection{Architecture physique du système}
+
+L'architecture physique (ou technique) d'une application informatique est l'ensemble des dispositifs matériels et logiciels supportant notre application.
+
+Les différents composants de notre architecture physique sont :
+
+\begin{itemize}
+    \item \textbf{GitHub} : Plateforme web dédiée à l'hébergement et à la gestion collaborative de projets logiciels.
+    \item \textbf{GitHub Actions} : Service d'intégration continue qui permet d'automatiser les étapes de compilation, de test et de déploiement.
+    \item \textbf{Serveur Nginx} : Serveur web (http) ainsi qu'un proxy inverse.
+    \item \textbf{Serveur MySQL} : Système de gestion de bases de données relationnelles (SGBDR).
+    \item \textbf{TeamBundle} : API qui contient les traitements métiers.
+    \item \textbf{Team} : Frontend de l'application.
+    \item \textbf{Team-pro} : Frontend de l'application.
+end{itemize}
+
+\subsection{Architecture logique : l'architecture hexagonale}
+
+L'objectif principal de l'architecture hexagonale est de séparer la logique métier d'une application de ses services techniques, afin de garantir que la partie métier se concentre exclusivement sur les traitements fonctionnels.
+
+\subsubsection{Définition}
+
+L'architecture hexagonale, également connue sous le nom d'architecture de ports et adaptateurs, est une approche de conception logicielle qui sépare la logique métier centrale des systèmes externes tels que les bases de données, les API et les interfaces utilisateur.
+
+\subsubsection{Composants fondamentaux}
+
+\begin{itemize}
+    \item \textbf{Entités (Logique métier centrale)} : Les entités contiennent la logique métier de base et les règles de l'application. Ils sont indépendants des systèmes externes.
+    
+    \item \textbf{Ports (interfaces)} : Les ports définissent la manière dont le système central communique avec les composants externes via des interfaces.
+    
+    \item \textbf{Adaptateurs (implémentations de ports)} : Les adaptateurs implémentent les ports et gèrent la communication entre le système central et les composants externes.
+    
+    \item \textbf{Services d'application} : Les services applicatifs coordonnent le flux de données entre entités, ports et adaptateurs.
+    
+    \item \textbf{Dépôts (couche de persistance)} : Les dépôts gèrent le stockage et la récupération des données à partir de bases de données.
+end{itemize}
+
+\subsection{Architecture de la synchronisation Delta}
+
+\subsubsection{Introduction}
+
+L'architecture de synchronisation Delta constitue le cœur principal du système développé dans ce projet. Elle permet d'assurer la synchronisation incrémentale des données entre l'ERP AdminIS et l'application interne tout en minimisant les échanges inutiles.
+
+Contrary to complete synchronization that transfers all data at each execution, the Delta Sync approach consists of processing only the data that has been modified since the last synchronization.
+
+\subsubsection{Principe de fonctionnement}
+
+Le système de synchronisation repose sur un mécanisme de récupération des changements effectues dans l'ERP AdminIs afin d'appliquer sur notre système interne (PowerTeam).
+
+A chaque appel de Access Point de la synchronisation Delta :
+
+\begin{enumerate}
+    \item Le système va créer une ligne de la base de données contient la commande complète dans une colonne.
+    \item La démo il va scanner notre table dans la base de données puis il lance la commande de synchronisation Delta.
+    \item Le système récupère les nouvelles modifications depuis l'ERP AdminIs par un filtre du nom du table plus la dernière date de synchronisation ou la dernière Log Id.
+    \item Les données modifiées sont analysées et classifiées par le type d'action effectuées (INSERTION/UPDATE, DELETE).
+    \item Les données sont ensuite transformées selon le modelé de l'application interne.
+    \item Finalement, les modifications sont appliquées dans la base de données cible.
+end{enumerate}
+
+\section{Frameworks et Technologies de Développement}
+
+\subsection{Ubuntu 24.04}
+
+Ubuntu est un système d'exploitation Linux fondé sur Debian, c'est un logiciel open-source connu par sa stabilité et sa simplicité d'utilisation.
+
+\subsection{PHP}
+
+PHP (Hypertext Preprocessor) est un langage de programmation côté serveur largement utilisé pour le développement d'applications web. Il est particulièrement adapté à la création de pages web dynamiques et à la gestion des bases de données.
+
+\subsection{Symfony}
+
+Symfony est un framework PHP open source conçu pour le développement d'applications web robustes et évolutives. Il suit l'architecture MVC, ce qui permet de séparer la logique de l'application de l'interface utilisateur.
+
+\subsection{React.js}
+
+React.js est une bibliothèque JavaScript open-source développée par Meta (Facebook) permettant de créer des interfaces utilisateur dynamiques interactives. Elle repose sur un modèle de composants réutilisables.
+
+\subsection{MySQL}
+
+MySQL est un système de gestion de bases de données relationnelles (SGBDR). Il est l'un des logiciels de gestion de base de données les plus utilisés au monde.
+
+\subsection{Nginx}
+
+Nginx est un serveur web open-source utilisé pour servir des contenus web qui agit comme un reverse proxy, équilibrant la charge entre plusieurs serveurs d'application.
+
+\subsection{Git et GitHub}
+
+Git est un système de contrôle de version décentralisé qui permet aux développeurs de suivre les changements apportés à leur code source. GitHub est une plateforme de développement collaboratif qui permet aux développeurs de stocker et de gérer leur code source.
+
+\subsection{Doctrine}
+
+Doctrine est une bibliothèque de gestion des bases de données pour PHP qui fournit un mécanisme de mapping objet-relationnel (ORM).
+
+\section{Conclusion}
+
+Ce chapitre a permis de définir précisément les besoins fonctionnels et non fonctionnels de l'application, en mettant l'accent sur les fonctionnalités attendues, la convivialité, la sécurité et la performance du système. L'analyse technique a ensuite présenté les choix architecturaux réalisés.
