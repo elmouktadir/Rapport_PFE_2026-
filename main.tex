@@ -1,0 +1,91 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper]{report}
+\input{preamble}
+
+\begin{document}
+
+% =====================
+% Page de garde (sans numéro)
+% =====================
+\input{pages/page-garde}
+\clearpage
+\setcounter{page}{2}
+
+% Blank page
+\thispagestyle{empty}
+\null
+\clearpage
+
+% =====================
+% Pages préliminaires
+% =====================
+\input{pages/dedicasse}
+\clearpage
+
+\input{pages/remerciements}
+\clearpage
+
+% =====================
+% Résumés (arabe, français, anglais — obligatoires)
+% =====================
+\input{pages/abstract}
+\clearpage
+
+\input{pages/resume}
+\clearpage
+
+\input{pages/resume-arabe}
+\clearpage
+
+% =====================
+% Table des matières
+% =====================
+\tableofcontents
+\clearpage
+
+% =====================
+% Liste des figures et des tables
+% =====================
+\input{pages/liste-figures-tableaux}
+\clearpage
+
+% =====================
+% Introduction Générale
+% =====================
+\input{pages/introduction-generale}
+\clearpage
+
+% =====================
+% Chapitres
+% =====================
+\include{chapters/01-etude-prealable/page-titre}
+\include{chapters/01-etude-prealable/contenu}
+
+\include{chapters/02-analyse-conception/page-titre}
+\include{chapters/02-analyse-conception/contenu}
+
+\include{chapters/03-environnement-technologies/page-titre}
+\include{chapters/03-environnement-technologies/contenu}
+
+\include{chapters/04-realisation/page-titre}
+\include{chapters/04-realisation/contenu}
+
+\include{chapters/05-bilan/page-titre}
+\include{chapters/05-bilan/contenu}
+
+% =====================
+% Conclusion Générale
+% =====================
+\input{pages/conclusion}
+\clearpage
+
+\input{pages/references}
+\clearpage
+
+% =====================
+% Glossaire des acronymes
+% =====================
+\input{pages/liste-abreviations}
+\clearpage
+
+\end{document}
